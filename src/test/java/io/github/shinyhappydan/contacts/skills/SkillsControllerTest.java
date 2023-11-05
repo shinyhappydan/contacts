@@ -24,6 +24,7 @@ public class SkillsControllerTest {
     private MockMvc mvc;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final Skill Java6 = new Skill("Java 6");
 
     @Test
     public void testGetSkillsWhenEmpty() throws Exception {
@@ -32,9 +33,9 @@ public class SkillsControllerTest {
 
     @Test
     public void testCreateSkill() throws Exception {
-        var skill = createSkill(new Skill("Java"));
+        var skill = createSkill(Java6);
 
-        assertEquals("Java", skill.name());
+        assertEquals(Java6.name(), skill.name());
         assertNotNull(skill.id());
 
         assertEquals(skill, getSkill(skill.id()));
@@ -42,12 +43,44 @@ public class SkillsControllerTest {
 
     @Test
     public void testDeleteSkill() throws Exception {
-        var skill = createSkill(new Skill("Java"));
+        var skill = createSkill(Java6);
 
-        mvc.perform(delete("/skills/" + skill.id()))
-                .andExpect(status().isOk());
+        deleteSkill(skill.id());
 
         assertEquals(List.of(), getSkills());
+    }
+
+    private void deleteSkill(String id) throws Exception {
+        mvc.perform(delete("/skills/" + id))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testUpdateSkill() throws Exception {
+        var skill = createSkill(Java6);
+
+        var updatedSkill = Java6.withName("Java 21");
+
+        var responseSkill = updateSkill(skill.id(), updatedSkill);
+
+        assertEquals(updatedSkill, responseSkill.toSkill());
+        assertEquals(skill.id(), responseSkill.id());
+
+        var fetchedSkill = getSkill(skill.id());
+        assertEquals(responseSkill, fetchedSkill);
+    }
+
+    private SkillWithId updateSkill(String id, Skill updatedSkill) throws Exception {
+        var response = mvc.perform(
+                post("/skills/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updatedSkill))
+        ).andExpect(
+                status().isOk()
+        ).andReturn().getResponse().getContentAsString();
+
+        return parseSkillWithId(response);
     }
 
     private SkillWithId createSkill(Skill skill) throws Exception {

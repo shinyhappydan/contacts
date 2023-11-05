@@ -34,4 +34,15 @@ public class SkillsController {
     public void deleteSkill(@PathVariable String id) {
         skills.remove(id);
     }
+
+    @PostMapping(value = "/skills/{id}", consumes = "application/json", produces = "application/json")
+    public SkillWithId updateSkill(@PathVariable String id, @RequestBody Skill skill) {
+        var entry = SkillWithId.from(skill, id);
+        if (skills.containsKey(id)) {
+            skills.put(id, entry);
+        } else {
+            throw new NoSuchElementException();
+        }
+        return entry;
+    }
 }
