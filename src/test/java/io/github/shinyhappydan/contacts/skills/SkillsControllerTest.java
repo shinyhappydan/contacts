@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -31,20 +32,44 @@ public class SkillsControllerTest {
 
     @Test
     public void testCreateSkill() throws Exception {
-        mvc.perform(
-                put("/skills/Java")
-        ).andExpect(
-                status().isCreated()
-        );
-        assertEquals(List.of("Java"), getSkills());
+        var skill = createSkill(new Skill("Java"));
+
+        assertEquals("Java", skill.name());
+        assertNotNull(skill.id());
+
+        assertEquals(skill, getSkill(skill.id()));
     }
 
-    private List<String> getSkills() throws Exception {
-        var json = mvc.perform(get("/skills").contentType(MediaType.APPLICATION_JSON))
+    private SkillWithId createSkill(Skill skill) throws Exception {
+        var json = mvc.perform(
+                post("/skills")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(skill))
+        ).andExpect(
+                status().isCreated()
+        ).andReturn().getResponse().getContentAsString();
+
+        return parseSkillWithId(json);
+    }
+
+    private SkillWithId getSkill(String id) throws Exception {
+        var json = mvc.perform(get("/skills/" + id).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        System.out.println(json);
+        return parseSkillWithId(json);
+    }
+
+    private SkillWithId parseSkillWithId(String json) throws Exception {
+        return objectMapper.readValue(json, SkillWithId.class);
+    }
+
+
+    private List<SkillWithId> getSkills() throws Exception {
+        var json = mvc.perform(get("/skills").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
 
         return objectMapper.readValue(json, new TypeReference<>() {
         });

@@ -2,25 +2,31 @@ package io.github.shinyhappydan.contacts.skills;
 
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static org.springframework.http.HttpStatus.CREATED;
 
 
 @RestController
 public class SkillsController {
-    private final Set<String> skills = new HashSet<>();
+    private final Map<String, SkillWithId> skills = new HashMap<>();
 
     @GetMapping(value = "/skills", produces = "application/json")
-    public Set<String> getSkills() {
-        return skills;
+    public Collection<SkillWithId> getSkills() {
+        return skills.values();
     }
 
-    @PutMapping(value = "/skills/{skill}", produces = "application/json")
+    @GetMapping(value = "/skills/{id}", produces = "application/json")
+    public SkillWithId getSkill(@PathVariable String id) {
+        return Optional.ofNullable(skills.get(id)).orElseThrow();
+    }
+
+    @PostMapping(value = "/skills", consumes = "application/json",produces = "application/json")
     @ResponseStatus(CREATED)
-    public String createSkill(@PathVariable String skill) {
-        skills.add(skill);
-        return skill;
+    public SkillWithId createSkill(@RequestBody Skill skill) {
+        var id = UUID.randomUUID().toString();
+        var entry = SkillWithId.from(skill, id);
+        skills.put(id, entry);
+        return entry;
     }
 }
