@@ -12,7 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(SkillsController.class)
@@ -29,10 +29,22 @@ public class SkillsControllerTest {
         assertEquals(List.of(), getSkills());
     }
 
+    @Test
+    public void testCreateSkill() throws Exception {
+        mvc.perform(
+                put("/skills/Java")
+        ).andExpect(
+                status().isCreated()
+        );
+        assertEquals(List.of("Java"), getSkills());
+    }
+
     private List<String> getSkills() throws Exception {
         var json = mvc.perform(get("/skills").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
+
+        System.out.println(json);
 
         return objectMapper.readValue(json, new TypeReference<>() {
         });
