@@ -28,7 +28,7 @@ public class SkillsControllerTest {
     private MockMvc mvc;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final Skill Java6 = new Skill("Java 6");
+    private static final Skill Java6 = new Skill("Java 6", Level.BASIC);
 
     @Test
     public void testGetSkillsWhenEmpty() throws Exception {
@@ -47,7 +47,7 @@ public class SkillsControllerTest {
 
     @Test
     public void testCreateSkillWithInvalidField() throws Exception {
-        mvc.perform(createSkillRequest(new Skill("")))
+        mvc.perform(createSkillRequest(new Skill("", null)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -69,7 +69,7 @@ public class SkillsControllerTest {
     public void testUpdateSkill() throws Exception {
         var skill = createSkill(Java6);
 
-        var updatedSkill = Java6.withName("Java 21");
+        var updatedSkill = new Skill("Java 21", Level.INTERMEDIATE);
 
         var responseSkill = updateSkill(skill.id(), updatedSkill);
 
