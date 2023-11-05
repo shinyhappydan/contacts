@@ -2,6 +2,7 @@ package io.github.shinyhappydan.contacts;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -11,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -25,25 +27,21 @@ public class ControllerTest {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Test
-    public void testGetContactsWhenEmpty() throws Exception {
-        assertEquals(List.of(), getContacts());
-    }
+    private static final Contact Andre = new Contact("Andre", "O'Connor", "Andre O'Connor", "12", "andre@rules.ok", "555-BONIO");
+    private static final Contact Bernie = new Contact("Bernie", "Bell-Bamford", "Bernie Bell-Bamford", "Pat's Paws", "bernie@zoomies.org", "555-FEED-ME-BUTTER");
 
     @Test
     public void testCreateNewContact()
             throws Exception {
 
-        var request = new Contact("Andre");
+        var result = createContact(Andre);
 
-        var result = createContact(request);
-
-        assertEquals(request.name(), result.name());
         assertNotNull(result.id());
+        assertEquals(Andre, result.toContact());
 
-        var contact = getContact(result.id());
+        var fetchedContact = getContact(result.id());
 
-        assertEquals(result, contact);
+        assertEquals(result, fetchedContact);
     }
 
 
@@ -51,24 +49,37 @@ public class ControllerTest {
     public void testUpdateContact()
             throws Exception {
 
-        var id = givenThereIsAContact(new Contact("Andre"));
+        var id = givenThereIsAContact(Andre);
 
-        updateContact(id, new Contact("Penne"));
+        String updatedEmail = "andre@good.boy";
+        updateContact(id, Andre.withEmail(updatedEmail));
 
         var updatedContact = getContact(id);
 
-        assertEquals("Penne", updatedContact.name());
+        assertEquals(updatedEmail, updatedContact.email());
     }
 
     @Test
     public void testDeleteContact()
             throws Exception {
 
-        var id = givenThereIsAContact(new Contact("Andre"));
+        var id = givenThereIsAContact(Andre);
 
         deleteContact(id);
 
         assertEquals(List.of(), getContacts());
+    }
+
+    @Test
+    public void testGetContactsWhenEmpty() throws Exception {
+        assertEquals(List.of(), getContacts());
+    }
+
+    @Test
+    public void testGetContacts() throws Exception {
+        var andreWithId = createContact(Andre);
+        var penneWithId = createContact(Bernie);
+        assertThat(getContacts(), Matchers.containsInAnyOrder(andreWithId, penneWithId));
     }
 
     private List<ContactWithId> getContacts() throws Exception {
