@@ -1,6 +1,8 @@
 package io.github.shinyhappydan.contacts.skills;
 
-public record Skill(String name) {
+import jakarta.validation.constraints.NotBlank;
+
+public record Skill(@NotBlank String name) {
     public Skill withName(String name) {
         return new Skill(name);
     }
