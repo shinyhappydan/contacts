@@ -1,77 +1,113 @@
 package io.github.shinyhappydan.contacts;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.util.List;
 
-import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(Controller.class)
-@DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ControllerTest {
 
     @Autowired
-
     private MockMvc mvc;
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     public void testGetContactsWhenEmpty() throws Exception {
-        mvc.perform(get("/contacts").contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", is(List.of())));
+        assertEquals(List.of(), getContacts());
     }
 
     @Test
     public void testCreateNewContact()
             throws Exception {
 
-        String andre = "Andre";
+        var request = new Contact("Andre");
 
-        mvc.perform(postContact(andre))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$", is(andre)));
+        var result = createContact(request);
 
-        mvc.perform(getContacts())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", is(List.of(andre))));
+        assertEquals(request.name(), result.name());
+        assertNotNull(result.id());
+
+        var contact = getContact(result.id());
+
+        assertEquals(result, contact);
+    }
+
+
+    @Test
+    public void testUpdateContact()
+            throws Exception {
+
+        var id = givenThereIsAContact(new Contact("Andre"));
+
+        updateContact(id, new Contact("Penne"));
+
+        var updatedContact = getContact(id);
+
+        assertEquals("Penne", updatedContact.name());
     }
 
     @Test
     public void testDeleteContact()
             throws Exception {
 
-        String andre = "Andre";
+        var id = givenThereIsAContact(new Contact("Andre"));
 
-        givenThereIsAContact(andre);
+        deleteContact(id);
 
-        mvc.perform(delete("/contacts/Andre"))
-                        .andExpect(status().isOk());
+        assertEquals(List.of(), getContacts());
+    }
 
-        mvc.perform(getContacts())
+    private List<ContactWithId> getContacts() throws Exception {
+        var json = mvc.perform(get("/contacts").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", is(List.of())));
+                .andReturn().getResponse().getContentAsString();
+
+        return objectMapper.readValue(json, new TypeReference<>() {
+        });
     }
 
-    private void givenThereIsAContact(String andre) throws Exception {
-        mvc.perform(postContact(andre))
+    private ContactWithId getContact(String id) throws Exception {
+        var json = mvc.perform(get("/contacts/" + id).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        return objectMapper.readValue(json, ContactWithId.class);
+    }
+
+    private void updateContact(String id, Contact contact) throws Exception {
+        mvc.perform(post("/contacts/" + id).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(contact)))
+                .andExpect(status().isOk());
+    }
+
+    private void deleteContact(String id) throws Exception {
+        mvc.perform(delete("/contacts/" + id).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    private ContactWithId createContact(Contact contact) throws Exception {
+        var json = mvc.perform(post("/contacts").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(contact)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$", is(andre)));
+                .andReturn().getResponse().getContentAsString();
+
+        return objectMapper.readValue(json, ContactWithId.class);
     }
 
-    private static MockHttpServletRequestBuilder postContact(String name) {
-        return post("/contacts").contentType(MediaType.APPLICATION_JSON).content(name);
+    private String givenThereIsAContact(Contact contact) throws Exception {
+        return createContact(contact).id();
     }
 
-    private MockHttpServletRequestBuilder getContacts() {
-        return get("/contacts").contentType(MediaType.APPLICATION_JSON);
-    }
 }

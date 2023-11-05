@@ -9,22 +9,40 @@ import java.util.*;
 @RestController
 public class Controller {
 
-    private final Set<String> contacts = new HashSet<>();
+    private final Map<String, ContactWithId> contacts = new HashMap<>();
 
     @GetMapping(value = "/contacts", produces = "application/json")
-    public Set<String> getContacts() {
-        return contacts;
+    public Collection<ContactWithId> getContacts() {
+        return contacts.values();
+    }
+
+    @GetMapping(value = "/contacts/{id}", produces = "application/json")
+    public ContactWithId getContact(@PathVariable String id) {
+        return Optional.ofNullable(contacts.get(id)).orElseThrow();
     }
 
     @PostMapping(value = "/contacts", consumes = "application/json", produces = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
-    public String createContact(@RequestBody String name) {
-        contacts.add(name);
-        return name;
+    public ContactWithId createContact(@RequestBody Contact contact) {
+        var id = UUID.randomUUID().toString();
+        var entry = ContactWithId.from(contact, id);
+        contacts.put(id, entry);
+        return entry;
     }
 
-    @DeleteMapping(value = "/contacts/{name}")
-    public void deleteContact(@PathVariable String name) {
-        contacts.remove(name);
+    @PostMapping(value = "/contacts/{id}", consumes = "application/json", produces = "application/json")
+    public ContactWithId updateContact(@PathVariable String id, @RequestBody Contact contact) {
+        var entry = ContactWithId.from(contact, id);
+        if (contacts.containsKey(id)) {
+            contacts.put(id, entry);
+        } else {
+            throw new NoSuchElementException();
+        }
+        return entry;
+    }
+
+    @DeleteMapping(value = "/contacts/{id}")
+    public void deleteContact(@PathVariable String id) {
+        contacts.remove(id);
     }
 }
