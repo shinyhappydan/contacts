@@ -1,4 +1,4 @@
-package io.github.shinyhappydan.contacts;
+package io.github.shinyhappydan.contacts.contacts;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,9 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(Controller.class)
+@WebMvcTest(ContactsController.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class ControllerTest {
+public class ContactsControllerTest {
 
     @Autowired
     private MockMvc mvc;
@@ -53,7 +53,6 @@ public class ControllerTest {
         mvc.perform(post("/contacts").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(contact)))
                 .andExpect(status().isBadRequest());
     }
-
 
     @Test
     public void testUpdateContact()

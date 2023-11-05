@@ -1,4 +1,4 @@
-package io.github.shinyhappydan.contacts;
+package io.github.shinyhappydan.contacts.contacts;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -8,7 +8,7 @@ import java.util.*;
 
 
 @RestController
-public class Controller {
+public class ContactsController {
 
     private final Map<String, ContactWithId> contacts = new HashMap<>();
 

@@ -1,4 +1,4 @@
-package io.github.shinyhappydan.contacts;
+package io.github.shinyhappydan.contacts.contacts;
 
 public record ContactWithId(String id, String firstName, String lastName, String fullName, String address, String email, String phoneNumber) implements ContactInfo {
     public static ContactWithId from(Contact contact, String id) {

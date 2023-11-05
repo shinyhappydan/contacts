@@ -1,4 +1,4 @@
-package io.github.shinyhappydan.contacts;
+package io.github.shinyhappydan.contacts.contacts;
 
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Email;

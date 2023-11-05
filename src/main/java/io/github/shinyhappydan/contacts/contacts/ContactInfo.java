@@ -1,4 +1,4 @@
-package io.github.shinyhappydan.contacts;
+package io.github.shinyhappydan.contacts.contacts;
 
 public interface ContactInfo {
     String firstName();
