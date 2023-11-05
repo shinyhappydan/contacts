@@ -1,5 +1,6 @@
 package io.github.shinyhappydan.contacts;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +24,7 @@ public class Controller {
 
     @PostMapping(value = "/contacts", consumes = "application/json", produces = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
-    public ContactWithId createContact(@RequestBody Contact contact) {
+    public ContactWithId createContact(@RequestBody @Valid Contact contact) {
         var id = UUID.randomUUID().toString();
         var entry = ContactWithId.from(contact, id);
         contacts.put(id, entry);

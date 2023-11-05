@@ -27,8 +27,8 @@ public class ControllerTest {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final Contact Andre = new Contact("Andre", "O'Connor", "Andre O'Connor", "12", "andre@rules.ok", "555-BONIO");
-    private static final Contact Bernie = new Contact("Bernie", "Bell-Bamford", "Bernie Bell-Bamford", "Pat's Paws", "bernie@zoomies.org", "555-FEED-ME-BUTTER");
+    private static final Contact Andre = new Contact("Andre", "O'Connor", "Andre O'Connor", "12 Bonio Lane", "andre@rules.ok", "07755667788");
+    private static final Contact Bernie = new Contact("Bernie", "Bell-Bamford", "Bernie Bell-Bamford", "Pat's Paws", "bernie@zoomies.org", "077666778899");
 
     @Test
     public void testCreateNewContact()
@@ -42,6 +42,16 @@ public class ControllerTest {
         var fetchedContact = getContact(result.id());
 
         assertEquals(result, fetchedContact);
+    }
+
+    @Test
+    public void testCreateNewContactWithInvalidFields()
+            throws Exception {
+
+        var contact = new Contact("", "", "", "", "ziggy!barcelonafc.com", "123A567890");
+
+        mvc.perform(post("/contacts").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(contact)))
+                .andExpect(status().isBadRequest());
     }
 
 
