@@ -1,6 +1,7 @@
 package io.github.shinyhappydan.contacts.skills;
 
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -10,40 +11,41 @@ import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
 public class SkillsController {
-    private final Map<String, SkillWithId> skills = new HashMap<>();
+    private final SkillStore skillStore;
+
+    public SkillsController(@Autowired SkillStore skillStore) {
+        this.skillStore = skillStore;
+    }
 
     @GetMapping(value = "/skills", produces = "application/json")
-    public Collection<SkillWithId> getSkills() {
-        return skills.values();
+    public Collection<SkillView> getSkills() {
+        return skillStore.getAll();
     }
 
     @GetMapping(value = "/skills/{id}", produces = "application/json")
-    public SkillWithId getSkill(@PathVariable String id) {
-        return Optional.ofNullable(skills.get(id)).orElseThrow();
+    public SkillView getSkill(@PathVariable String id) {
+        return requireSkill(id);
     }
 
     @PostMapping(value = "/skills", consumes = "application/json",produces = "application/json")
     @ResponseStatus(CREATED)
-    public SkillWithId createSkill(@RequestBody @Valid Skill skill) {
-        var id = UUID.randomUUID().toString();
-        var entry = SkillWithId.from(skill, id);
-        skills.put(id, entry);
-        return entry;
+    public SkillView createSkill(@RequestBody @Valid Skill skill) {
+        return skillStore.create(skill);
     }
 
     @DeleteMapping(value = "/skills/{id}")
     public void deleteSkill(@PathVariable String id) {
-        skills.remove(id);
+        skillStore.delete(id);
     }
 
     @PostMapping(value = "/skills/{id}", consumes = "application/json", produces = "application/json")
-    public SkillWithId updateSkill(@PathVariable String id, @RequestBody @Valid Skill skill) {
-        var entry = SkillWithId.from(skill, id);
-        if (skills.containsKey(id)) {
-            skills.put(id, entry);
-        } else {
-            throw new NoSuchElementException();
-        }
-        return entry;
+    public SkillView updateSkill(@PathVariable String id, @RequestBody @Valid Skill skill) {
+        return skillStore.update(id, skill);
+    }
+
+    private SkillView requireSkill(String id) {
+        var skill = skillStore.get(id);
+        if (skill == null) throw new NoSuchElementException();
+        else return skill;
     }
 }
