@@ -40,6 +40,16 @@ public class SkillsControllerTest {
         assertEquals(skill, getSkill(skill.id()));
     }
 
+    @Test
+    public void testDeleteSkill() throws Exception {
+        var skill = createSkill(new Skill("Java"));
+
+        mvc.perform(delete("/skills/" + skill.id()))
+                .andExpect(status().isOk());
+
+        assertEquals(List.of(), getSkills());
+    }
+
     private SkillWithId createSkill(Skill skill) throws Exception {
         var json = mvc.perform(
                 post("/skills")

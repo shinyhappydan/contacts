@@ -29,4 +29,9 @@ public class SkillsController {
         skills.put(id, entry);
         return entry;
     }
+
+    @DeleteMapping(value = "/skills/{id}")
+    public void deleteSkill(@PathVariable String id) {
+        skills.remove(id);
+    }
 }
