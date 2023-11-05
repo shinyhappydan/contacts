@@ -1,20 +1,25 @@
 package io.github.shinyhappydan.contacts;
 
+import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.SetMultimap;
 import io.github.shinyhappydan.contacts.contacts.ContactWithId;
 import io.github.shinyhappydan.contacts.skills.SkillView;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.MultiValueMap;
 
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class ContactSkillStore {
-    private final MultiValueMap<String, String> contactSkills = CollectionUtils.toMultiValueMap(new ConcurrentHashMap<>());
+    private final SetMultimap<String, String> contactSkills =  MultimapBuilder.hashKeys().hashSetValues().build();
     public Set<String> addSkill(ContactWithId contact, SkillView skill) {
-        contactSkills.add(contact.id(), skill.id());
+        contactSkills.put(contact.id(), skill.id());
 
-        return Set.copyOf(contactSkills.get(contact.id()));
+        return contactSkills.get(contact.id());
+    }
+
+    public Set<String> removeSkill(ContactWithId contact, SkillView skill) {
+        contactSkills.remove(contact.id(), skill.id());
+
+        return contactSkills.get(contact.id());
     }
 }

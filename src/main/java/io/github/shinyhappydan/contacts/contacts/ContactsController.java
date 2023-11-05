@@ -69,6 +69,15 @@ public class ContactsController {
         return contactViewFrom(contact, skills);
     }
 
+    @DeleteMapping(value = "/contacts/{contactId}/skills/{skillId}")
+    public ContactView removeSkillFromContact(@PathVariable String contactId, @PathVariable String skillId) {
+        var contact = requireContact(contactId);
+        var skill = requireSkill(skillId);
+        var skills = contactSkillStore.removeSkill(contact, skill);
+
+        return contactViewFrom(contact, skills);
+    }
+
     private ContactView contactViewFrom(ContactWithId contact, Set<String> skills) {
         var skillViews = skills.stream().map(skillStore::get).collect(Collectors.toSet());
         return ContactView.from(contact, skillViews);

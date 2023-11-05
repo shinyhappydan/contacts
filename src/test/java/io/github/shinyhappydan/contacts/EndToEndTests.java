@@ -10,8 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
-import static io.github.shinyhappydan.contacts.Fixtures.Andre;
-import static io.github.shinyhappydan.contacts.Fixtures.Java6;
+import static io.github.shinyhappydan.contacts.Fixtures.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -29,7 +28,7 @@ class EndToEndTests {
 	}
 
 	@Test
-	public void testContactWithSkills() throws Exception {
+	public void testAddSkillToContact() throws Exception {
 		var java6Id = client.createSkill(Java6).id();
 
 		var andreId = client.createContact(Andre).id();
@@ -38,6 +37,21 @@ class EndToEndTests {
 
 		assertEquals(List.of(Java6.name()), result.skills().stream().map(SkillView::name).toList());
 		assertEquals(List.of(Java6.level()), result.skills().stream().map(SkillView::level).toList());
+	}
+
+	@Test
+	public void testRemoveSkillFromContact() throws Exception {
+		var java6Id = client.createSkill(Java6).id();
+		var kotlinId = client.createSkill(Kotlin).id();
+
+		var andreId = client.createContact(Andre).id();
+
+		client.addSkillToContact(andreId, java6Id);
+		client.addSkillToContact(andreId, kotlinId);
+
+		var result = client.removeSkillFromContact(andreId, java6Id);
+		assertEquals(List.of(Kotlin.name()), result.skills().stream().map(SkillView::name).toList());
+		assertEquals(List.of(Kotlin.level()), result.skills().stream().map(SkillView::level).toList());
 	}
 
 }

@@ -116,4 +116,8 @@ public class ApiClient {
 
         return objectMapper.readValue(json, parseToType);
     }
+
+    public ContactView removeSkillFromContact(String contactId, String skillId) throws Exception {
+        return executeAndParseResponse(delete("/contacts/" + contactId + "/skills/" + skillId), ContactView.class, status().isOk());
+    }
 }
